@@ -4,9 +4,9 @@
 
 #### **User Management:**
 
-- **POST `/api/register`** – Register a new user.
-- **POST `/api/login`** – Authenticate user and provide access token.
-- **POST `/api/logout`** – Logout the user.
+- **POST `/api/user/register`** – Register a new user.
+- **POST `/api/user/login`** – Authenticate user and provide access token.
+- **POST `/api/user/logout`** – Logout the user.
 - **GET `/api/user/:id`** – Fetch user details (with proper authentication).
 - **PUT `/api/user/:id`** – Update user profile information.
 - **DELETE `/api/user/:id`** – Delete user account.
