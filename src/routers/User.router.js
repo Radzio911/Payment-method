@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { Session, User } from "../models/index.js";
 import { v4 } from "uuid";
+import { auth } from "../middlewares/auth.js"
 
 export const userRouter = new Router();
 
-userRouter.post("/register", async (req, res) => {
+userRouter.post("/register", auth,  async (req, res) => {
   const {
     username,
     password,
@@ -49,4 +50,48 @@ userRouter.post("/login", async (req, res) => {
   } else {
     res.status(401).json({ message: "Bad username or password!" });
   }
+});
+
+userRouter.get("/:User", async (req, res) => {
+	const { User } = req.params;
+	const user = await getUserById(User);
+	if (user) {
+		res.json(user);
+	} else {
+		res.status(404).json({ message: "User not found" });
+	}
+});
+
+userRouter.put("/:User", auth, async (req, res) => {
+	const { User } = req.params;
+	const { username, email, firstName, lastName, address, phoneNumber } = req.body;
+	if (username && email && firstName && lastName && address && phoneNumber) {
+		const user = await getUserById(User);
+		if (user) {
+			await updateUser(User, {
+				username,
+				email,
+				firstName,
+				lastName,
+				address,
+        phoneNumber,
+			});
+			res.json({ message: "User updated successfully" });
+		} else {
+			res.status(404).json({ message: "User not found" });
+		}
+	} else {
+		res.status(400).json({ message: "Bad request" });
+	}
+});
+
+userRouter.delete("/:User", auth, async (req, res) => {
+	const { User } = req.params;
+	const user = await getUserById(User);
+	if (user) {
+		await deleteUser(User);
+		res.json({ message: "User deleted successfully" });
+	} else {
+		res.status(404).json({ message: "User not found" });
+	}
 });
