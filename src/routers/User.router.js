@@ -5,7 +5,7 @@ import { auth } from "../middlewares/auth.js"
 
 export const userRouter = new Router();
 
-userRouter.post("/register", auth,  async (req, res) => {
+userRouter.post("/register", async (req, res) => {
   const {
     username,
     password,
@@ -29,7 +29,7 @@ userRouter.post("/register", auth,  async (req, res) => {
   res.json({ user });
 });
 
-userRouter.post("/login", async (req, res) => {
+userRouter.post("/login", auth, async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({
