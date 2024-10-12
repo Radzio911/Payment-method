@@ -1,7 +1,8 @@
 import { Router } from "express";
 import { Session, User } from "../models/index.js";
 import { v4 } from "uuid";
-import { auth } from "../middlewares/auth.js"
+import { auth } from "../middlewares/auth.js";
+import jwt from "jsonwebtoken";
 
 export const userRouter = new Router();
 
@@ -29,7 +30,7 @@ userRouter.post("/register", async (req, res) => {
   res.json({ user });
 });
 
-userRouter.post("/login", auth, async (req, res) => {
+userRouter.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
   const user = await User.findOne({
@@ -52,46 +53,93 @@ userRouter.post("/login", auth, async (req, res) => {
   }
 });
 
-userRouter.get("/:User", async (req, res) => {
-	const { User } = req.params;
-	const user = await getUserById(User);
-	if (user) {
-		res.json(user);
-	} else {
-		res.status(404).json({ message: "User not found" });
-	}
+userRouter.post("/logout", auth, async (req, res) => {
+  await Session.findByIdAndDelete(req.session._id);
+  res.cookie("token", "");
+  res.json({ message: "Logged out" });
 });
 
-userRouter.put("/:User", auth, async (req, res) => {
-	const { User } = req.params;
-	const { username, email, firstName, lastName, address, phoneNumber } = req.body;
-	if (username && email && firstName && lastName && address && phoneNumber) {
-		const user = await getUserById(User);
-		if (user) {
-			await updateUser(User, {
-				username,
-				email,
-				firstName,
-				lastName,
-				address,
-        phoneNumber,
-			});
-			res.json({ message: "User updated successfully" });
-		} else {
-			res.status(404).json({ message: "User not found" });
-		}
-	} else {
-		res.status(400).json({ message: "Bad request" });
-	}
+userRouter.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (user) {
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      },
+    });
+  } else {
+    res.status(404).json({ message: "User not found" });
+  }
 });
 
-userRouter.delete("/:User", auth, async (req, res) => {
-	const { User } = req.params;
-	const user = await getUserById(User);
-	if (user) {
-		await deleteUser(User);
-		res.json({ message: "User deleted successfully" });
-	} else {
-		res.status(404).json({ message: "User not found" });
-	}
+userRouter.put("/:id", auth, async (req, res) => {
+  const { id } = req.params;
+
+  if (id != req.user._id && !res.user.isAdmin) {
+    res
+      .status(403)
+      .json({ message: "You don't have permission to this endpoint" });
+    return;
+  }
+
+  const {
+    username,
+    email,
+    firstName,
+    lastName,
+    address,
+    phoneNumber,
+    password,
+    oldPassword,
+  } = req.body;
+  if (
+    username &&
+    email &&
+    firstName &&
+    lastName &&
+    address &&
+    phoneNumber &&
+    password &&
+    oldPassword
+  ) {
+    const user = await User.findById(id);
+    if (user) {
+      if (user.password == oldPassword) {
+        await User.findByIdAndUpdate(id, {
+          username,
+          email,
+          firstName,
+          lastName,
+          address,
+          phoneNumber,
+          password,
+        });
+        res.json({ message: "User updated successfully" });
+      } else {
+        res.status(403).json({ message: "Old password is wrong" });
+      }
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } else {
+    res.status(400).json({ message: "Bad request" });
+  }
+});
+
+userRouter.delete("/:id", auth, async (req, res) => {
+  const { id } = req.params;
+
+  if (id != req.user.id && !res.user.isAdmin) {
+    res
+      .status(403)
+      .json({ message: "You don't have permission to this endpoint" });
+    return;
+  }
+
+  await User.findByIdAndDelete(id);
+  res.json({ message: "User deleted successfully" });
 });

@@ -1,15 +1,25 @@
 import jwt from "jsonwebtoken";
-import { Session } from "../models/index.js";
+import { Session, User } from "../models/index.js";
 
 export const auth = async (req, res, next) => {
-  await jwt.verify(req.cookies.token, process.env.JWT, async (err, decoded) => {
+  const token = req.body.token || req.cookies.token;
+  if (!token) {
+    req.user = null;
+    req.session = null;
+    req.isAuthenticated = () => {
+      return false;
+    };
+    return;
+  }
+
+  await jwt.verify(token, process.env.JWT, async (err, decoded) => {
     if (err) {
     } else {
       const sessionId = decoded.sessionId;
       const session = await Session.findById(sessionId);
       if (session) {
         if (!session.expired) {
-          req.user = session.user;
+          req.user = await User.findById(session.user);
           req.session = session;
         } else {
           await Session.findByIdAndDelete(sessionId);

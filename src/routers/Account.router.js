@@ -1,44 +1,55 @@
 import { Router } from "express";
-import { Session, Account, User } from "../models/index.js";
+import { Account } from "../models/index.js";
+import PaymentManager from "../PaymentManager.js";
+import { auth } from "../middlewares/auth.js";
 
+export const accountRouter = new Router();
 
-export const userRouter = new Router();
-
-
-userRouter.get("/:balance", auth, async (req, res) => {
-	const { Account } = req.params;
-	const account = await getUserById(Account);
-	if (account) {
-		res.json(account);
-	} else {
-		res.status(404).json({ message: "Account not found" });
-	}
+accountRouter.post("/create", auth, async (req, res) => {
+  const account = await Account.create({ balance: 0, user: req.user._id });
+  res.json({ account });
 });
 
-userRouter.post("/deposit", async (req, res) => {
-	const { Account } = req.params;
-  
-	const account = await User.findOne({
-	  user: User,
-	  balance: Number,
-	})
+accountRouter.get("/balance", auth, async (req, res) => {
+  const accounts = await Account.find({ user: req.user._id });
+  const balanceSum = accounts.reduce(
+    (sum, account) => sum + account.balance,
+    0
+  );
+  res.json({ balanceSum, numberOfAccounts: accounts.length, accounts });
 });
 
-userRouter.post("/withdraw", async (req, res) => {
-	const { Account } = req.params;
-  
-	const account = await User.findOne({
-	  user: User,
-	  balance: Number,
-	})
-	if (Account) {
-		res.json(account);
-	} else {
-		res.status(404).json({ message: "Not enough money." });
-	}
+accountRouter.post("/deposit", async (req, res) => {
+  const { accountId, transferId } = req.query;
+
+  const transfer = await PaymentManager.checkPaymentStatus(transferId);
+
+  if (transfer.done) {
+    const account = await Account.findById(accountId);
+    await Account.findByIdAndUpdate(accountId, {
+      balance: account.balance + transfer.amount,
+    });
+    res.json({ message: "Everyting done" });
+  } else {
+    res.status(400).json({ message: "Transfer is not done yet" });
+  }
 });
 
+accountRouter.post("/withdraw", auth, async (req, res) => {
+  let { accountId, amount, iban } = req.query;
 
+  amount = parseInt(amount);
 
+  const account = await Account.findById(accountId);
 
-
+  if (account.balance >= amount) {
+    const transfer = await PaymentManager.withdraw(amount, iban);
+    if (transfer) {
+      res.json({ message: "Withdraw done" });
+    } else {
+      res.status(400).json({ message: "Withdraw error" });
+    }
+  } else {
+    res.status(400).json({ message: "Withdraw error" });
+  }
+});
