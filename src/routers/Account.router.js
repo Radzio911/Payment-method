@@ -6,7 +6,7 @@ import { auth } from "../middlewares/auth.js";
 export const accountRouter = new Router();
 
 accountRouter.post("/create", auth, async (req, res) => {
-  const account = await Account.create({ balance: 0, user: req.user._id });
+  const account = await Account.create({ balance: 0, user: req.getUserId() });
   res.json({ account });
 });
 
@@ -42,10 +42,14 @@ accountRouter.post("/withdraw", auth, async (req, res) => {
 
   const account = await Account.findById(accountId);
 
+  if (account.user != req.getUserId() && !req.admin) {
+    res.status(403).json({ message: "You do not have permission " });
+  }
+
   if (account.balance >= amount) {
     const transfer = await PaymentManager.withdraw(amount, iban);
     if (transfer) {
-      res.json({ message: "Withdraw done" });
+      res.json({ message: "Withdraw successfull" });
     } else {
       res.status(400).json({ message: "Withdraw error" });
     }

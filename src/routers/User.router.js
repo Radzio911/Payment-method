@@ -27,7 +27,7 @@ userRouter.post("/register", async (req, res) => {
     phoneNumber,
   });
 
-  res.json({ user });
+  res.status(201).json({ user });
 });
 
 userRouter.post("/login", async (req, res) => {
@@ -60,6 +60,7 @@ userRouter.post("/logout", auth, async (req, res) => {
 });
 
 userRouter.get("/:id", async (req, res) => {
+  console.log("GET");
   const { id } = req.params;
   const user = await User.findById(id);
   if (user) {
@@ -77,6 +78,7 @@ userRouter.get("/:id", async (req, res) => {
 });
 
 userRouter.put("/:id", auth, async (req, res) => {
+  console.log("PUT");
   const { id } = req.params;
 
   if (id != req.user._id && !res.user.isAdmin) {
@@ -131,6 +133,7 @@ userRouter.put("/:id", auth, async (req, res) => {
 });
 
 userRouter.delete("/:id", auth, async (req, res) => {
+  console.log("DELETE");
   const { id } = req.params;
 
   if (id != req.user.id && !res.user.isAdmin) {

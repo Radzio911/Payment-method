@@ -3,18 +3,17 @@ import { Session, User } from "../models/index.js";
 
 export const auth = async (req, res, next) => {
   const token = req.body.token || req.cookies.token;
+
   if (!token) {
     req.user = null;
     req.session = null;
-    req.isAuthenticated = () => {
-      return false;
-    };
-    return;
+    req.isAuthenticated = () => false;
+    req.getUserId = () => null;
+    next();
   }
 
-  await jwt.verify(token, process.env.JWT, async (err, decoded) => {
-    if (err) {
-    } else {
+  jwt.verify(token, process.env.JWT, async (err, decoded) => {
+    if (!err) {
       const sessionId = decoded.sessionId;
       const session = await Session.findById(sessionId);
       if (session) {
@@ -30,9 +29,17 @@ export const auth = async (req, res, next) => {
         req.user = null;
         req.session = null;
       }
+    } else {
+      req.user = null;
+      req.session = null;
     }
+
     req.isAuthenticated = () => {
       return req.session != null && req.user != null;
+    };
+
+    req.getUserId = () => {
+      return req.user ? req.user._id : null;
     };
   });
   next();
