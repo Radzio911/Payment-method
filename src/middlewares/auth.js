@@ -9,19 +9,21 @@ export const auth = async (req, res, next) => {
     req.session = null;
     req.isAuthenticated = () => false;
     req.getUserId = () => null;
-    next();
-  }
-
-  jwt.verify(token, process.env.JWT, async (err, decoded) => {
-    if (!err) {
-      const sessionId = decoded.sessionId;
-      const session = await Session.findById(sessionId);
-      if (session) {
-        if (!session.expired) {
-          req.user = await User.findById(session.user);
-          req.session = session;
+  } else {
+    jwt.verify(token, process.env.JWT, async (err, decoded) => {
+      if (!err) {
+        const sessionId = decoded.sessionId;
+        const session = await Session.findById(sessionId);
+        if (session) {
+          if (!session.expired) {
+            req.user = await User.findById(session.user);
+            req.session = session;
+          } else {
+            await Session.findByIdAndDelete(sessionId);
+            req.user = null;
+            req.session = null;
+          }
         } else {
-          await Session.findByIdAndDelete(sessionId);
           req.user = null;
           req.session = null;
         }
@@ -29,19 +31,16 @@ export const auth = async (req, res, next) => {
         req.user = null;
         req.session = null;
       }
-    } else {
-      req.user = null;
-      req.session = null;
-    }
 
-    req.isAuthenticated = () => {
-      return req.session != null && req.user != null;
-    };
+      req.isAuthenticated = () => {
+        return req.session != null && req.user != null;
+      };
 
-    req.getUserId = () => {
-      return req.user ? req.user._id : null;
-    };
-  });
+      req.getUserId = () => {
+        return req.user ? req.user._id : null;
+      };
+    });
+  }
   next();
 };
 
