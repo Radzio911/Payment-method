@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { Transaction } from "../models";
 
 export const transactionRouter = new Router();
 
@@ -18,4 +19,35 @@ transactionRouter.post("/send", auth, async (req, res) => {
       .status(403)
       .json({ massage: "You don't have permission to this endpoint" });
   }
+});
+
+requestSchema.post("/request", async (req, res) => {
+  let { recipientId, amount } = req.body;
+  amount = parseInt(amount);
+  const recipient = await User.findById(recipientId);
+  if (recipient) {
+    const request = await Request.create({
+      sender: req.user,
+      amount,
+      dateTime: new Date(),
+      recipient,
+      done: false,
+    });
+    res.json({ request });
+  } else {
+    res.status(400).json({ message: "Bad request" });
+  }
+});
+
+transactionRouter.get("/history", async (req, res) => {
+  const transations = await Transaction.find({
+    $or: [{ sender: req.getUserId() }, { recipient: req.getUserId() }],
+  });
+  res.json({ transations });
+});
+
+transactionRouter.get("/:id", async (req, res) => {
+  const transactionId = req.params.id;
+  const transaction = await Transaction.findById(transactionId);
+  res.json({ transaction });
 });

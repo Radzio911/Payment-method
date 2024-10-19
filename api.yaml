@@ -1,0 +1,106 @@
+bank:
+  user:
+    register:
+      method: "POST"
+      url: "/api/user/register"
+      requestType: "JSON"
+      fields: User
+      responseCodes:
+        - 201
+        - 400
+      response:
+        user: User
+    login:
+      method: "POST"
+      url: "/api/user/login"
+      requestType: "JSON"
+      fields:
+        - username
+        - password
+      responseCodes:
+        - 200
+        - 401
+      response:
+        - message
+        - token
+        - user
+        - session
+    logout:
+      method: "POST"
+      url: "/api/user/logout"
+      responseCodes:
+        - 200
+        - 400
+      response:
+        - message
+
+  account:
+    create:
+      method: "POST"
+      url: "/api/account/create"
+      requestType: "JSON"
+      fields:
+        - user (from token)
+      responseCodes:
+        - 201
+        - 400
+      response:
+        account: Account
+    balance:
+      method: "GET"
+      url: "/api/account/balance"
+      requestType: "JSON"
+      fields: []
+      responseCodes:
+        - 200
+        - 400
+      response:
+        balanceSum: Number
+        numberOfAccounts: Number
+        accounts: Array of Account
+
+  deposit:
+    create:
+      method: "POST"
+      url: "/api/account/deposit"
+      requestType: "JSON"
+      fields:
+        - accountId
+        - transferId
+      responseCodes:
+        - 200
+        - 400
+      response:
+        - message
+
+  withdraw:
+    create:
+      method: "POST"
+      url: "/api/account/withdraw"
+      requestType: "JSON"
+      fields:
+        - accountId
+        - amount
+        - iban
+      responseCodes:
+        - 200
+        - 400
+        - 403
+      response:
+        - message
+
+  transaction:
+    send:
+      method: "POST"
+      url: "/api/transaction/send"
+      requestType: "JSON"
+      fields:
+        - sender (accountId)
+        - recipient (accountId)
+        - amount
+      responseCodes:
+        - 200
+        - 400
+        - 403
+      response:
+        - message
