@@ -43,7 +43,7 @@ accountRouter.post("/withdraw", auth, async (req, res) => {
   const account = await Account.findById(accountId);
 
   if (account.user != req.getUserId() && !req.admin) {
-    res.status(403).json({ message: "You do not have permission " });
+    res.status(403).json({ message: "You do not have permission" });
   }
 
   if (account.balance >= amount) {

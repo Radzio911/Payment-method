@@ -22,8 +22,6 @@ const endpoints = {
 
 dotenv.config();
 
-mongoose.connect(process.env.MONGO_TEST);
-
 let server = null;
 
 beforeAll(() => {
