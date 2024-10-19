@@ -1,4 +1,4 @@
-import app from "../src/index.js";
+import app from "../../src/index.js";
 import request from "supertest";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
@@ -39,8 +39,8 @@ afterAll((done) => {
   mongoose.connection.dropDatabase();
 });
 
-describe("POST /api/user/register", () => {
-  it("create user", async () => {
+describe("User", () => {
+  it("Correct Register", async () => {
     const response = await request(app).post(endpoints.user.register).send({
       username: "admin",
       password: "admin",
@@ -48,9 +48,36 @@ describe("POST /api/user/register", () => {
       firstName: "admin",
       lastName: "admin",
       address: "",
-      phoneNumber: "",
+      phoneNumber: "48100100100",
     });
     expect(response.statusCode).toBe(201);
     expect(response.body).toHaveProperty("user");
+  });
+
+  it("Register (used username)", async () => {
+    const response = await request(app).post(endpoints.user.register).send({
+      username: "admin",
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it("Register (wrong email)", async () => {
+    const response = await request(app).post(endpoints.user.register).send({
+      username: "admin-123",
+      email: "wrongemail",
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it("Login", async () => {
+    const response = await request(app).post(endpoints.user.login).send({
+      username: "admin",
+      password: "admin",
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty("user");
+    expect(response.body).toHaveProperty("token");
+
+    const token = response.body.token;
   });
 });
