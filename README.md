@@ -24,11 +24,6 @@
 - **GET `/api/transaction/history`** – Fetch transaction history.
 - **GET `/api/transaction/:id`** – Fetch details of a specific transaction.
 
-#### **Payment:**
-
-- **POST `/api/payment/process`** – Process a payment for a third-party service or merchant.
-- **POST `/api/payment/refund`** – Refund a payment.
-
 ### 2. **Middleware**
 
 - **`authMiddleware`**
@@ -46,8 +41,6 @@
   - Routes: `/balance`, `/deposit`, `/withdraw`
 - **`/transaction` Router**
   - Routes: `/send`, `/request`, `/history`
-- **`/payment` Router**
-  - Routes: `/process`, `/refund`
 
 ### Models
 
