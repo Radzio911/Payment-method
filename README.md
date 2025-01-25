@@ -1,6 +1,11 @@
 # PayPal Express App
 
-### 1. **Endpoints**
+## 1. How to run porject.
+
+`npm install`
+`npm run dev`
+
+### 2. **Endpoints**
 
 #### **User Management:**
 
@@ -24,7 +29,7 @@
 - **GET `/api/transaction/history`** – Fetch transaction history.
 - **GET `/api/transaction/:id`** – Fetch details of a specific transaction.
 
-### 2. **Middleware**
+### 3. **Middleware**
 
 - **`authMiddleware`**
 - **`adminMiddleware`**
@@ -33,7 +38,7 @@
 - **`rateLimitingMiddleware`**
 - **`loggingMiddleware`**
 
-### 3. **Routers**
+### 4. **Routers**
 
 - **`/auth` Router**
   - Routes: `/register`, `/login`, `/logout`
