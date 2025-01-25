@@ -1,6 +1,6 @@
 # PayPal Express App
 
-## 1. How to run porject.
+## 1. How to run project.
 
 `npm install`
 `npm run dev`
